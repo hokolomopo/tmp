@@ -1,51 +1,39 @@
-
-public class BorderCell extends Cell {
-	/* La classe BorderCell herite de la classe Cell pour les cellules des 
-	 * bords droits et gauches 
-	 */
+/*
+ * Cette classe herite de Cell et permet de gerer les cellules au bord de la 
+ * grille. 
+ */
+public class BorderCell extends Cell{
 	
+	int count;
 	
-	public int nb; 
-
-	public BorderCell (int r, int c, boolean s, Grid g) {
-		super (r, c, s, g);
+	public BorderCell(int row, int column, String state, String nextState,String previousState, int nbNeighbors, Grid grid) {
 		
+		super(row, column, state, nextState, previousState, nbNeighbors, grid);
 	}
 	
-		@Override public void update() {
-		/* Utilisation de Override pour pouvoir utiliser la methode update
-		 * appartenant a Cell mais en y apportant une modification propre
-		 * aux cellules du bord de la grille
-		 */
+	public int changeState() {
+		int count = 0;
 		
-		nb = differentState();		
+		if (previousState != state) {
+			
+			if((previousState.equals("Dead") || previousState.equals("None")) && state.equals("Alive"))  
+				count = 1;   // la cellule est nee
+			
+			else if (previousState.equals("Alive") && state.equals("Dead"))
+				count = -1;  // la cellule est morte 
+		}
 		
-		/* On voit si l'etat des cellules des bords droits et gauches de la
-		 * grille ont changes, avant que le nextState ne devienne le State courant
-		 */
-		state=nextState;
-	    }
-	
-	public int differentState() {
-		
-		int change;
-		if (state != nextState) {
-			if(state==false)
-				change = 2;
-			/* On choisit de mettre 1 si la cellule meurt et 2 si la cellule vit
-			 */
-			else 
-				change = 1;
-					}
 		else 
-			change = 0;
-		return change;
+			count = 0;   // l'etat de la cellule n'a pas change
+		
+		return count;
 	}
 	
-	public int count () {
+	public int getNumber() {
 		
-		return nb;
-		//On fait une methode qui retourne le changement d'etat de la cellule 
+		count = changeState();
+		return count;
+		
 	}
-		
-}
+	
+}// Fin de la classe BorderCell

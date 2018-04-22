@@ -1,136 +1,172 @@
 import java.util.Random;
 
-public class Grid  {
-	/*Cette classe contient toutes les methodes qui sont relatives a la grille du jeu en elle-meme,
-	 *  pas aux cellules */
-	
-int size;
-int secondsize;
-private Cell [][] grid;
-boolean [] findNeighbors = new boolean [9];
+/*
+ * Cette classe permet de gerer la grille, c-a-d sa creation, sa mise a jour et son affichage 
+ */
 
-
-	public Grid (int n,int m) throws ErrorsException { 
-		size = n;
-		secondsize=m;
+public class Grid {
 	
-		if (abs(m)%2 != abs(n)%2)
-			/*On utilise la valeur absolue pour que, si m ou n est negatif, l'operateur modulo
-			 * soit toujours adequat pour la verification de la parite */
-			throw new ErrorsException(0);
-		if (m>n)
-			throw new ErrorsException(1);
-		if (m<=0 || n<=0)
-			throw new ErrorsException(2);
-		if (m>500 || n>500)
-			throw new ErrorsException(3);
-		    
-		/*Le jeu ne fonctione pas si m et n ont certaines valeurs particulieres ou ne sont pas
-		 * compatibles*/
+	private int size;
+	private Cell[][] grid;
+	private int subsize;
 	
-		grid = new Cell[size][size];	
-	
-	
-		for (int i=0; i<size; i++) {
-			for (int j=0; j<size; j++) {
+	public Grid(int n, int m) throws SizeException {
 		
-				if (i<(n-m)/2 || j <(n-m)/2 || i>=(n+m)/ 2 || j>=(n+m)/2) {
-					if (j==0 || j==size-1) {
-					/*On considere les cellules des bords droits et gauches de la grille */						
+		// size est la taille de la grille complete et subsize est la taille de la grille centrale
+		size = n;
+		subsize = m;
+		
+		// On verifie que les tailles sont compatibles
+		if(n<m && (n>0 && m>0)) {
+			throw new SizeException(0);
+		}
+		
+		if(Math.abs(n)%2 != Math.abs(m)%2) {
+			throw new SizeException(1);	
+		}
+		
+		if(n<0 || m<0) {
+			throw new SizeException(2);
+		}
+		
+		grid = new Cell[this.size][this.size];
+	
+		// On va remplir la grille que de cases mortes
+		for(int i=0; i<this.size; i++) {
+			for (int j=0; j<this.size; j++){
+				if(i==0 || j==0 || i==this.size-1 || j==this.size-1)
+					this.grid[i][j] = new BorderCell(i, j, "Dead", "Unknown","None", 0, this);
+				else
+					this.grid[i][j] = new Cell(i, j, "Dead", "Unknown","None", 0, this);
+			}
+		}
+		
+		// On cree la partie centrale de la grille
+		for(int indexRow = 0; indexRow < this.subsize; indexRow ++) {
+			for (int indexColumn = 0; indexColumn < this.subsize; indexColumn++) {
 						
-						grid[i][j] = new BorderCell(i, j, false, this);
-					
-					}
-					else 
-						grid[i][j] = new Cell (i, j, false, this);
-				}
-				else {
-					Random rand = new Random();
-					boolean randState= rand.nextBoolean();
-					if (j==0 || j==size-1 ) {
-						grid[i][j] = new BorderCell(i, j, randState, this);
-						/*Le but ici est que, si m=n, on ait quand meme des 
-						 * cellules de type BorderCell*/
-	
-							if (randState == true)
-								((BorderCell)this.grid[i][j]).nb=2;	
-								/*L'initialisation est comptee comme un changement
-								 * d'etat si pour les cellules des bords */
-							
-					}
-					
-					else {					
-						grid [i][j]=  new Cell(i, j, randState, this);
-					}
-				}
-			}
-		}
-	}
-
-	private int abs(int x) {
-		//Methode qui calcule la valeur absolue d'un nombre 
-		if(x<0)
-			x = -x;
-		return x;
-	}
-
-	public Cell[] findNeighbors (int row, int column) {
-		/*Cette methode renvoie a la celulle un vecteur compose de ses 8 voisins (et d'elle meme)
-		* pour qu'elle puisse apres compter le nombre de ses voisins vivants*/
-	
-		Cell[] neighbors = new Cell[9];
-		int k=0;
-		for (int i=row-1; i<=row+1; i++){
-			for (int j=column-1; j<=column+1; j++) {
-				if (i<0 || j<0 || i>=size || j>=size)
-					neighbors[k]= null;
-					/*Si la cellule n'a pas de voisins a droite, a gauche, en haut, ou en bas, 
-					* la cellule correspondante sera de type Null*/
-				
+				Random rand= new Random(); // Donne 0 ou 1 au hasard
+				int draw = rand.nextInt(2);
+						
+				if (draw == 0)
+					this.grid[((this.size-this.subsize)/2)+indexRow][((this.size-this.subsize)/2)+indexColumn].state = "Dead";
 				else 
-					neighbors[k]=this.grid[i][j];		
-					k++;
-			}
-		}
-		return neighbors;
-	}
+					this.grid[((this.size-this.subsize)/2)+indexRow][((this.size-this.subsize)/2)+indexColumn].state = "Alive";
 
-	public void newGeneration() {
-		for (int i=0; i<size; i++) {
-			for (int j=0; j<size; j++){
-				this.grid[i][j].findNextState();
 			}
 		}
-		/*On trouve les nouveaus State de chaque cellule en fonction des State courants des 
-		 * cellules voisines*/
+	}
+	int getSize() {
+		return size;
+	}
 	
-		for (int i=0; i<size; i++) {
-			for (int j=0; j<size; j++){
-				this.grid[i][j].update();
-			}
-		}
-		/*On change ensuite le State de chaque cellule ce qui permet d'obtenir les cellules de la
-		 * nouvelle generation */
+	Cell[][] getGrid() {
+		return grid;
 	}
-
-	public int modified (int row, int column) {
-
-		int count = ((BorderCell)this.grid[row][column]).count();
-		return count;
-	}
-
-
-	public boolean[][] getGrid(){
-		/* Cette methode permet d'obtenir la grille de booleens qui correspondent aux etats de
-		* chaque cellule*/
 	
-		boolean[][] sta = new boolean [size][size];
-		for (int i=0; i<size; i++) {
-			for(int j=0; j<size; j++) {
-				sta[i][j]= this.grid[i][j].getState();
+	public void updateGrid(Grid grid) {
+		// Mise a jour de la grille
+		
+		for (int i=0; i<this.size; i++) {
+			for(int j=0; j<this.size; j++) {
+				this.grid[i][j].setNextState();
 			}
 		}
-		return sta;
+		
+		for (int i=0; i<this.size; i++) {
+			for(int j=0; j<this.size; j++) {
+				this.grid[i][j].updateCell();
+			}
+		}
 	}
-
-}
+	
+	public void displayGrid() {
+		// Affichage de la grille et des compteurs
+		
+		for(int indexRow=0; indexRow<this.size; indexRow++) {
+			// Affichage du compteur a gauche
+			String left = new String();
+			left += "[+";
+			left += String.format("%2d", this.bornCells()[indexRow][0]) + " / -";
+			left += String.format("%2d", this.deadCells()[indexRow][0]) + " ]";
+			System.out.print(left);
+			
+			for(int indexColumn = 0; indexColumn < this.size; indexColumn++) {
+				
+				if (this.grid[indexRow][indexColumn].getState().equals("Alive"))
+					System.out.print(" * ");
+				else
+					System.out.print(" - ");
+			}
+			
+			// Affichage du compteur a droite
+			String right = new String();
+			right += "[+";
+			right += String.format("%2d", this.bornCells()[indexRow][1]) + " / -";
+			right += String.format("%2d", this.deadCells()[indexRow][1]) + " ]";
+			System.out.print(right);
+			
+			System.out.print("\n");
+					
+			}
+		
+	}
+	
+	public int countChange(int row, int column) {
+		/* Pour savoir si la cellule est nee ou morte au cours de la mise a jour 
+		 * de la grille
+		 */
+		int cpt = ((BorderCell) grid[row][column]).changeState();
+		return cpt;
+		
+	}
+	
+	public int[][] deadCells() {
+		// On compte les cellules mortes au cours de la mise a jour
+		
+		int[][] dead= new int[this.size][2];
+		
+		for (int i=0; i<this.size; i++) {
+			
+			if (this.countChange(i, 0) == -1)
+				dead[i][0] = 1;		
+			else 
+				dead[i][0] = 0;
+		}
+		
+		
+		for (int i=0; i<this.size; i++) {
+			
+			if (this.countChange(i, this.size-1) == -1)
+				dead[i][1] = 1;
+			else 
+				dead[i][1] = 0;
+		}
+		return dead;
+	}
+	
+	
+	public int[][] bornCells() {
+	// On compte les cellules qui sont nees au cours de la mise a jour
+		
+		int[][] born = new int[this.size][2];
+		
+		for (int i=0; i<this.size; i++) {
+			
+			if (this.countChange(i, 0) == 1)
+				born[i][0] = 1 ;
+			else 
+				born[i][0] = 0;
+		}
+		
+		for (int i=0; i<this.size; i++) {
+			
+			if (this.countChange(i, this.size-1) == 1)
+				born[i][1] = 1;
+			else 
+				born[i][1] = 0;
+		}
+		return born;
+	}	
+		
+} // fin de la classe Grid
