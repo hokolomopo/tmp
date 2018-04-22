@@ -1,89 +1,68 @@
-/*
- * Cette classe permet de gerer une cellule, c-a-d gerer ses voisins, 
- * ses etats et sa mise a jour 
- */
 public class Cell {
-
-	protected int column;
+	/*Cette classe reprend toutes les methodes directement relatives
+	 * aux cellules en elles-meme*/
+	
 	protected int row;
-	protected String state;
-	protected String nextState; 
-	protected int nbNeighbors;
-	protected Grid grid;
-	protected String previousState;
-	
-	public Cell(int pRow, int pColumn, String pState, String pNextState, String prState, int pNbNeighbors, Grid pGrid) {
-		
-		column = pColumn;
-		row = pRow;
-		state = pState;
-		nextState = pNextState;
-		previousState = prState;
-		nbNeighbors = pNbNeighbors;
-		grid = pGrid;	
-		
+	protected int column;
+	protected boolean state;
+	protected boolean nextState; 
+	protected int size; 
+	private Grid grid;
+
+	public Cell(int r, int c, boolean s, Grid g) {
+		row = r;
+		column = c;
+		state = s;
+		grid = g;
 	}
+
+	public int neighbors() {
+		/*Cette methode permet e la celulle de compter combien de ses voisins sont vivants, 
+		 *a partir du vecteur compose de ceux-ci*/
 	
-	public String getState() {
+		Cell[] neighbors = new Cell[9];
+		int nbr=0;
+		neighbors = this.grid.findNeighbors(row, column);
+		for (int i=0; i<9 ; i++) {
+			
+			if (neighbors[i] != null && neighbors[i].getState()==true) 
+					nbr+= 1;
+		}
+		if (neighbors [4].getState()==true)
+			nbr-= 1;	  
+		/*Si la cellule en question est vivante, il ne faut pas la compter comme un voisin
+		 * vivant*/ 
+	
+		return nbr;
+		}
+
+
+	public boolean findNextState() {
+		/*Cette methode renvoie l'etat suivant de la cellule, sur base du nombre de ses voisins
+		 *  vivants */
+	
+		int numberNeighbors = neighbors();	
+	
+		if(numberNeighbors<2 || numberNeighbors>=4)
+			nextState = false;
+		
+		
+			if(state == true && (numberNeighbors==2 || numberNeighbors==3))
+				nextState = true;
+		
+		if(numberNeighbors==3 && state==false) 
+			nextState = true;
+		
+		return nextState;
+	}
+
+
+	public boolean getState () {	
 		return state;
 	}
-	
-	public void setNextState() {
-		int nbNeighbors = getNbNeighbors();
-		if(state =="Alive") {
-			if (nbNeighbors == 2 || nbNeighbors == 3) 
-				nextState = "Alive";
-			
-			else 
-			nextState = "Dead";
-		}
-		else {
-			if(this.nbNeighbors ==3)
-				nextState = "Alive";
-			else 
-				nextState = "Dead";
-		} 
+
+	public void update() {
+		state = nextState;
 	}
-	
-	// Mise a jour de la cellule
-	public void updateCell() {
-		previousState = state;
-		state = nextState;		
-	}
-	
-	// Permet de trouver le nombre de voisins de la cellule
-	public int getNbNeighbors() {
-		
-		int leftLimit = -1, rightLimit = 1, topLimit = -1, underLimit = 1;
-		int nbNeighbors = 0;
-		
-		if(this.row == 0)
-			topLimit = 0;
-		
-		if(this.row == this.grid.getSize() -1)
-			underLimit = 0;
-		
-		if(this.column == 0)
-			leftLimit = 0;
-		
-		if(this.column == this.grid.getSize() -1)
-			rightLimit = 0;
-		
-		
-		for (int i= topLimit; i<= underLimit; i++) {
-			for(int j= leftLimit; j<= rightLimit; j++) {
-				
-				if (this.grid.getGrid()[(this.row)+i][(this.column)+j].state.equals("Alive"))
-					nbNeighbors ++;
-			}
-		}	
-		
-		// On ne doit pas compter la cellule dans ses voisins si elle est vivante
-		if (this.grid.getGrid()[this.row][this.column].state.equals("Alive")){
-			nbNeighbors --;
-		}
-		
-		return nbNeighbors;
-	}// fin getNeighbors()	
-	
-} // fin de la classe Cell
+
+}

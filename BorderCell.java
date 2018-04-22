@@ -1,39 +1,51 @@
-/*
- * Cette classe herite de Cell est permet de gerer les cellules au bord de la 
- * grille. Elle permet de gerer les compteurs sur les cotes
- */
-public class BorderCell extends Cell{
+
+public class BorderCell extends Cell {
+	/* La classe BorderCell herite de la classe Cell pour les cellules des 
+	 * bords droits et gauches 
+	 */
 	
-	int count;
 	
-	public BorderCell(int row, int column, String state, String nextState,String previousState, int nbNeighbors, Grid grid) {
+	public int nb; 
+
+	public BorderCell (int r, int c, boolean s, Grid g) {
+		super (r, c, s, g);
 		
-		super(row, column, state, nextState, previousState, nbNeighbors, grid);
 	}
 	
-	public int changeState() {
-		int count = 0;
+		@Override public void update() {
+		/* Utilisation de Override pour pouvoir utiliser la methode update
+		 * appartenant a Cell mais en y apportant une modification propre
+		 * aux cellules du bord de la grille
+		 */
 		
-		if (previousState != state) {
-			
-			if((previousState.equals("Dead") || previousState.equals("None")) && state.equals("Alive"))  
-				count = 1;   // la cellule est nee
-			
-			else if (previousState.equals("Alive") && state.equals("Dead"))
-				count = -1;  // la cellule est morte 
-		}
+		nb = differentState();		
 		
+		/* On voit si l'etat des cellules des bords droits et gauches de la
+		 * grille ont changes, avant que le nextState ne devienne le State courant
+		 */
+		state=nextState;
+	    }
+	
+	public int differentState() {
+		
+		int change;
+		if (state != nextState) {
+			if(state==false)
+				change = 2;
+			/* On choisit de mettre 1 si la cellule meurt et 2 si la cellule vit
+			 */
+			else 
+				change = 1;
+					}
 		else 
-			count = 0;   // l'etat de la cellule n'a pas change
-		
-		return count;
+			change = 0;
+		return change;
 	}
 	
-	public int getNumber() {
+	public int count () {
 		
-		count = changeState();
-		return count;
-		
+		return nb;
+		//On fait une methode qui retourne le changement d'etat de la cellule 
 	}
-	
-}// Fin de la classe BorderCell
+		
+}
